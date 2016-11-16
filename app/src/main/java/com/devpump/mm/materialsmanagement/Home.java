@@ -15,14 +15,35 @@ import android.widget.Toast;
 public class Home extends AppCompatActivity {
 
     static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
+    TextView tv_scanContent;
+    String barCode, ItemName, ItemQuantity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        linkComponents();
+        getSavedState(savedInstanceState);
     }
 
-    //product barcode mode
+    protected  void onSaveInstanceState(Bundle outState){
+        outState.putString("barCode", tv_scanContent.getText().toString());
+    }
+
+    public void linkComponents(){
+        tv_scanContent = (TextView)findViewById(R.id.tv_barcode);
+    }
+
+    public void getSavedState(Bundle instanceState){
+        if(instanceState != null) {
+            barCode = instanceState.getString("barCode");
+            if (barCode != null) {
+                tv_scanContent.setText(barCode);
+            }
+        }
+    }
+
+
     public void scanBar(View v) {
         try {
             //start the scanning activity from the com.google.zxing.client.android.SCAN intent
@@ -32,19 +53,6 @@ public class Home extends AppCompatActivity {
         } catch (ActivityNotFoundException anfe) {
             //on catch, show the download dialog
             showDialog(Home.this, "No Scanner Found", "Download a scanner code activity?", "Yes", "No").show();
-        }
-    }
-
-    //product qr code mode
-    public void scanQR(View v) {
-        try {
-            //start the scanning activity from the com.google.zxing.client.android.SCAN intent
-            Intent intent = new Intent(ACTION_SCAN);
-            intent.putExtra("SCAN_MODE", "ONE_D_MODE"); //QR_CODE_MODE"
-            startActivityForResult(intent, 0);
-        } catch (ActivityNotFoundException anfe) {
-            //on catch, show the download dialog
-            showDialog(this, "No Scanner Found", "Download a scanner code activity?", "Yes", "No").show();
         }
     }
 
@@ -80,7 +88,6 @@ public class Home extends AppCompatActivity {
                 String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
                 Toast toast = Toast.makeText(this, "Content:" + contents + " Format:" + format, Toast.LENGTH_LONG);
                 toast.show();
-                TextView tv_scanContent = (TextView)findViewById(R.id.textView1);
                 tv_scanContent.setText(contents);
             }
         }
