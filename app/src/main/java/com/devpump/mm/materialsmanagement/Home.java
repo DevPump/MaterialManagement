@@ -2,44 +2,24 @@ package com.devpump.mm.materialsmanagement;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,29 +27,44 @@ public class Home extends AppCompatActivity {
 
     static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
     TextView tv_scanContent;
-    String barCode, ItemName, ItemQuantity;
+    EditText et_itemName;
+    String barCode, itemName;
+    double itemQuantity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         linkComponents();
+        initializeGlobalVariables();
         getSavedState(savedInstanceState);
+    }
+    public void initializeGlobalVariables(){
+        barCode = "";
+        itemName = "";
+        itemQuantity = 0.0;
     }
 
     protected  void onSaveInstanceState(Bundle outState){
         outState.putString("barCode", tv_scanContent.getText().toString());
+        outState.putString("itemName", et_itemName.getText().toString());
+
     }
 
     public void linkComponents(){
         tv_scanContent = (TextView)findViewById(R.id.tv_barcode);
+        et_itemName = (EditText)findViewById(R.id.et_itemName);
     }
 
     public void getSavedState(Bundle instanceState){
         if(instanceState != null) {
             barCode = instanceState.getString("barCode");
-            if (barCode != null) {
+            itemName = instanceState.getString("itemName");
+            if(barCode != null) {
                 tv_scanContent.setText(barCode);
+            }
+            if(itemName != null){
+                et_itemName.setText(itemName);
             }
         }
     }
@@ -119,23 +114,40 @@ public class Home extends AppCompatActivity {
                 String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
 //                Toast toast = Toast.makeText(this, "Content:" + contents + " Format:" + format, Toast.LENGTH_LONG);
 //                toast.show();
-                testPost(contents);
-                //tv_scanContent.setText(contents);
+
+                testPost(new VolleyCallback() {
+                    @Override
+                    public void onSuccess(String result) {
+                        barCode = result;
+                        tv_scanContent.setText(barCode);
+                        et_itemName.setText(itemName);
+                    }
+                },contents);
+
             }
         }
     }
 
-    public void testPost(final String barCode){
+    public void onResume(){
+        super.onResume();
+    }
 
 
-        final String url = "http://192.168.1.83";
+    public interface VolleyCallback{
+        void onSuccess(String result);
+    }
 
+    public void testPost(final VolleyCallback callback, final String barCode){
+
+        final String url = "http://192.168.1.83:4223";
+        final String returnResponse;
         StringRequest postRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>()
                 {
                     @Override
                     public void onResponse(String response) {
                         // response
+                        callback.onSuccess(response.toString());
                         Log.d("Response", response.toString());
                     }
                 },
@@ -153,6 +165,7 @@ public class Home extends AppCompatActivity {
             {
                 Map<String, String>  params = new HashMap<String, String>();
                 params.put("barCode", barCode);
+                params.put("itemName",itemName);
 
                 return params;
             }

@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/et_itemName"
         android:layout_below="@+id/tv_ItemNameTitle"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
@@ -73,7 +73,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tv_quantity"
-        android:layout_alignTop="@+id/editText"
+        android:layout_alignTop="@+id/et_itemName"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="42dp"
         android:textSize="20dp" />
