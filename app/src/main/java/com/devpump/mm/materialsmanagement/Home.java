@@ -37,14 +37,14 @@ public class Home extends AppCompatActivity {
     Spinner spin_itemQuantityType;
     ArrayAdapter<CharSequence> adapter;
 
-    String barCode, itemName, itemQuantity;
-    int itemSelectedPosition;
+//    String barCode, itemName, itemQuantity;
+//    int itemSelectedPosition;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         linkComponents();
-        initializeGlobalVariables();
+//        initializeGlobalVariables();
 
         adapter = ArrayAdapter.createFromResource(
                 this, R.array.string_itemQuantities, android.R.layout.simple_spinner_item);
@@ -53,12 +53,12 @@ public class Home extends AppCompatActivity {
 
         getSavedState(savedInstanceState);
     }
-    public void initializeGlobalVariables(){
-        barCode = "";
-        itemName = "";
-        itemQuantity = "";
-        itemSelectedPosition = 0;
-    }
+//    public void initializeGlobalVariables(){
+//        barCode = "";
+//        itemName = "";
+//        itemQuantity = "";
+//        itemSelectedPosition = 0;
+//    }
 
     protected void onSaveInstanceState(Bundle outState){
         outState.putString("barCode", tv_scanContent.getText().toString());
