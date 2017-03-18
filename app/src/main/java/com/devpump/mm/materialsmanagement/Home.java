@@ -45,17 +45,13 @@ public class Home extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         linkComponents();
         initializeGlobalVariables();
-        getSavedState(savedInstanceState);
 
         adapter = ArrayAdapter.createFromResource(
                 this, R.array.string_itemQuantities, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spin_itemQuantityType.setAdapter(adapter);
 
-        if (savedInstanceState != null) {
-            spin_itemQuantityType.setSelection(savedInstanceState.getInt("itemQuantityType", 0));
-            // do this for each of your text views
-        }
+        getSavedState(savedInstanceState);
     }
     public void initializeGlobalVariables(){
         barCode = "";
@@ -80,18 +76,10 @@ public class Home extends AppCompatActivity {
 
     public void getSavedState(Bundle instanceState){
         if(instanceState != null) {
-            barCode = instanceState.getString("barCode");
-            itemName = instanceState.getString("itemName");
-            itemQuantity = instanceState.getString("itemQuantity");
-
-            itemSelectedPosition = instanceState.getInt("itemQuantityType", 0);
-
-            if(barCode != null)
-                tv_scanContent.setText(barCode);
-            if(itemName != null)
-                et_itemName.setText(itemName);
-            if(itemQuantity != null)
-                et_itemQuantity.setText(itemQuantity);
+            tv_scanContent.setText(instanceState.getString("barCode"));
+            et_itemName.setText(instanceState.getString("itemName"));
+            et_itemQuantity.setText(instanceState.getString("itemQuantity"));
+            spin_itemQuantityType.setSelection(instanceState.getInt("itemQuantityType"));
         }
     }
 
