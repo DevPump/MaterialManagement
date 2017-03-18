@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Materials Management</string>
     <string name="barcodeTextHolder">{BarCode}</string>
+    <string-array name="string_itemQuantities">
+        <item>Gallon</item>
+        <item>Ounce</item>
+        <item>Pound</item>
+    </string-array>
+
 </resources>

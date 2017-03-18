@@ -10,8 +10,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -20,6 +23,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,10 +33,12 @@ public class Home extends AppCompatActivity {
 
     static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
     TextView tv_scanContent;
-    EditText et_itemName;
-    String barCode, itemName;
-    double itemQuantity;
+    EditText et_itemName, et_itemQuantity;
+    Spinner spin_itemQuantityType;
+    ArrayAdapter<CharSequence> adapter;
 
+    String barCode, itemName, itemQuantity;
+    int itemSelectedPosition;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,34 +46,52 @@ public class Home extends AppCompatActivity {
         linkComponents();
         initializeGlobalVariables();
         getSavedState(savedInstanceState);
+
+        adapter = ArrayAdapter.createFromResource(
+                this, R.array.string_itemQuantities, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spin_itemQuantityType.setAdapter(adapter);
+
+        if (savedInstanceState != null) {
+            spin_itemQuantityType.setSelection(savedInstanceState.getInt("itemQuantityType", 0));
+            // do this for each of your text views
+        }
     }
     public void initializeGlobalVariables(){
         barCode = "";
         itemName = "";
-        itemQuantity = 0.0;
+        itemQuantity = "";
+        itemSelectedPosition = 0;
     }
 
-    protected  void onSaveInstanceState(Bundle outState){
+    protected void onSaveInstanceState(Bundle outState){
         outState.putString("barCode", tv_scanContent.getText().toString());
         outState.putString("itemName", et_itemName.getText().toString());
-
+        outState.putString("itemQuantity", et_itemQuantity.getText().toString());
+        outState.putInt("itemQuantityType",spin_itemQuantityType.getSelectedItemPosition());
     }
 
     public void linkComponents(){
         tv_scanContent = (TextView)findViewById(R.id.tv_barcode);
         et_itemName = (EditText)findViewById(R.id.et_itemName);
+        et_itemQuantity = (EditText)findViewById(R.id.et_itemQuantity);
+        spin_itemQuantityType = (Spinner) findViewById(R.id.spin_quantityType);
     }
 
     public void getSavedState(Bundle instanceState){
         if(instanceState != null) {
             barCode = instanceState.getString("barCode");
             itemName = instanceState.getString("itemName");
-            if(barCode != null) {
+            itemQuantity = instanceState.getString("itemQuantity");
+
+            itemSelectedPosition = instanceState.getInt("itemQuantityType", 0);
+
+            if(barCode != null)
                 tv_scanContent.setText(barCode);
-            }
-            if(itemName != null){
+            if(itemName != null)
                 et_itemName.setText(itemName);
-            }
+            if(itemQuantity != null)
+                et_itemQuantity.setText(itemQuantity);
         }
     }
 
@@ -112,67 +138,12 @@ public class Home extends AppCompatActivity {
                 //get the extras that are returned from the intent
                 String contents = intent.getStringExtra("SCAN_RESULT");
                 String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
-//                Toast toast = Toast.makeText(this, "Content:" + contents + " Format:" + format, Toast.LENGTH_LONG);
-//                toast.show();
-
-                testPost(new VolleyCallback() {
-                    @Override
-                    public void onSuccess(String result) {
-                        barCode = result;
-                        tv_scanContent.setText(barCode);
-                        et_itemName.setText(itemName);
-                    }
-                },contents);
+                Toast toast = Toast.makeText(this, "Content:" + contents + " Format:" + format, Toast.LENGTH_LONG);
+                toast.show();
+                tv_scanContent.setText(contents);
 
             }
         }
-    }
-
-    public void onResume(){
-        super.onResume();
-    }
-
-
-    public interface VolleyCallback{
-        void onSuccess(String result);
-    }
-
-    public void testPost(final VolleyCallback callback, final String barCode){
-
-        final String url = "http://192.168.1.83:4223";
-        final String returnResponse;
-        StringRequest postRequest = new StringRequest(Request.Method.POST, url,
-                new Response.Listener<String>()
-                {
-                    @Override
-                    public void onResponse(String response) {
-                        // response
-                        callback.onSuccess(response.toString());
-                        Log.d("Response", response.toString());
-                    }
-                },
-                new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // error
-                        Log.d("Error.Response", error.getMessage());
-                    }
-                }
-        ){
-            @Override
-            protected Map<String, String> getParams()
-            {
-                Map<String, String>  params = new HashMap<String, String>();
-                params.put("barCode", barCode);
-                params.put("itemName",itemName);
-
-                return params;
-            }
-        };
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(postRequest);
-
     }
 
 }
