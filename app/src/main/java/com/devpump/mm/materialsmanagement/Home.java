@@ -85,14 +85,13 @@ public class Home extends AppCompatActivity {
         try {
             //Start the scanning activity from the com.google.zxing.client.android.SCAN intent
             Intent scanIntent = new Intent(ACTION_SCAN);
-           // startActivityForResult(scanIntent, 0);
+            startActivityForResult(scanIntent, 0);
         } catch (ActivityNotFoundException anfe) {
             //on catch, show the download dialog
             Toast alertNoScanner = Toast.makeText(Home.this,"No Scanner Found", Toast.LENGTH_LONG);
             alertNoScanner.show();
 
         }
-        checkDatabase();
     }
 
     //on ActivityResult method
@@ -100,35 +99,48 @@ public class Home extends AppCompatActivity {
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 //get the extras that are returned from the intent
-                String contents = intent.getStringExtra("SCAN_RESULT");
-                String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
-                Toast toast = Toast.makeText(this, "Content:" + contents + " Format:" + format, Toast.LENGTH_LONG);
-                toast.show();
-                tv_scanContent.setText(contents);
+                String barCode = intent.getStringExtra("SCAN_RESULT");
+                tv_scanContent.setText(barCode);
+                checkDatabase(barCode, new VolleyCallback() {
 
+                    @Override
+                    public void onSuccess(JSONObject job) {
+                        try {
+                            et_itemName.setText(job.getString("itemName").toString());
+                            et_itemQuantity.setText(job.getString("itemQuantity").toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                });
+                }
             }
         }
-    }
 
-    public void checkDatabase() { //String barCode, String itemName, double itemQuantity){
+
+    public void checkDatabase(String barCode, final VolleyCallback callback) { //String barCode, String itemName, double itemQuantity){
+        //Create object to send to server.
         JSONObject job = new JSONObject();
         try {
-            job.put("typeOfAction","5sdf");
+            job.put("barCode",barCode);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        //Create Object request with via POST method with JSON Object.
         JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "http://192.168.1.83/test.php",job,
                 new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.v("Response", response.toString());
                         try {
-                            Log.v("typeOfAction Log", response.getString("typeOfAction").toString());
+                            Log.v("itemName Response", response.getString("itemName").toString());
+                            Log.v("itemQuantity Response", response.getString("itemQuantity").toString());
+                            Log.v("itemQuantityT Response", response.getString("itemQuantityType").toString());
+                            callback.onSuccess(response);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -137,13 +149,14 @@ public class Home extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),
                         error.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        }){
-
-        };
+        });
 
         // Adding request to request queue
         RequestQueue rq = Volley.newRequestQueue(this);
         rq.add(req);
-
     }
+}
+
+interface VolleyCallback{
+    void onSuccess(JSONObject job);
 }
