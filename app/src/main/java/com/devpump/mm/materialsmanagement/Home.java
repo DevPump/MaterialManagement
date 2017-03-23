@@ -102,17 +102,17 @@ public class Home extends AppCompatActivity {
                 tv_scanContent.setText(barCode);
                 JSONObject job = new JSONObject();
                 try {
-                    job.put("postFile","db.php");
-                    job.put("selectOnly","1");
+                    //Clear text fields
+                    et_itemName.setText("");
+                    //Create JSON Object for submitting.
+                    job.put("actionType","select");
                     job.put("barCode",barCode);
-                    job.put("itemName","tacos");
-
                     checkDatabase(job, new VolleyCallback() {
 
                         public void onSuccess(JSONObject job) {
                             try {
-                                et_itemName.setText(job.getString("itemName").toString());
-                                et_itemQuantity.setText(job.getString("itemQuantity").toString());
+                                et_itemName.setText(job.getString("itemName").toString().trim());
+                                et_itemQuantity.setText(job.getString("itemQuantity").toString().trim());
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -129,8 +129,7 @@ public class Home extends AppCompatActivity {
 
         JSONObject job = new JSONObject();
         try {
-            job.put("postFile","db.php");
-            job.put("selectOnly","0");
+            job.put("actionType","insert");
             job.put("barCode",tv_scanContent.getText());
             job.put("itemName",et_itemName.getText());
 
@@ -140,6 +139,9 @@ public class Home extends AppCompatActivity {
                     try {
                         Toast toasty = Toast.makeText(Home.this,job.getString("status").toString(), Toast.LENGTH_LONG);
                         toasty.show();
+                        Log.v("Insert Status:",job.getString("status").toString());
+                        et_itemName.setText("");
+                        tv_scanContent.setText("");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -154,7 +156,7 @@ public class Home extends AppCompatActivity {
 
     public void checkDatabase(JSONObject jsonPostData, final VolleyCallback callback) throws JSONException { //String barCode, String itemName, double itemQuantity){
         //Create Object request with via POST method with JSON Object.
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "http://192.168.1.83/" + jsonPostData.getString("postFile").toString(),jsonPostData,
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "http://192.168.1.83/main.php",jsonPostData,
                 new Response.Listener<JSONObject>() {
 
                     @Override
