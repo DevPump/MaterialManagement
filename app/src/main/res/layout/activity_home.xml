@@ -98,4 +98,14 @@
         android:layout_below="@+id/tv_quantity"
         android:layout_toEndOf="@+id/tv_quantity" />
 
+    <Button
+        android:id="@+id/btn_Insert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/spin_quantityType"
+        android:layout_marginTop="30dp"
+        android:onClick="addItemToDB"
+        android:text="Insert" />
+
 </RelativeLayout>

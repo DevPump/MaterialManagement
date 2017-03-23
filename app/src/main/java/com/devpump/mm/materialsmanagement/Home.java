@@ -96,58 +96,76 @@ public class Home extends AppCompatActivity {
 
     //on ActivityResult method
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 //get the extras that are returned from the intent
                 String barCode = intent.getStringExtra("SCAN_RESULT");
                 tv_scanContent.setText(barCode);
-                checkDatabase(barCode, new VolleyCallback() {
+                JSONObject job = new JSONObject();
+                try {
+                    job.put("postFile","db.php");
+                    job.put("selectOnly","1");
+                    job.put("barCode",barCode);
+                    job.put("itemName","tacos");
 
-                    @Override
-                    public void onSuccess(JSONObject job) {
-                        try {
-                            et_itemName.setText(job.getString("itemName").toString());
-                            et_itemQuantity.setText(job.getString("itemQuantity").toString());
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                    checkDatabase(job, new VolleyCallback() {
+
+                        public void onSuccess(JSONObject job) {
+                            try {
+                                et_itemName.setText(job.getString("itemName").toString());
+                                et_itemQuantity.setText(job.getString("itemQuantity").toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
                         }
-
-                    }
-                });
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
-        }
+    }
 
+    public void addItemToDB(View v){
 
-    public void checkDatabase(String barCode, final VolleyCallback callback) { //String barCode, String itemName, double itemQuantity){
-        //Create object to send to server.
         JSONObject job = new JSONObject();
         try {
-            job.put("barCode",barCode);
+            job.put("postFile","db.php");
+            job.put("selectOnly","0");
+            job.put("barCode",tv_scanContent.getText());
+            job.put("itemName",et_itemName.getText());
+
+            checkDatabase(job, new VolleyCallback() {
+
+                public void onSuccess(JSONObject job) {
+                    try {
+                        Toast toasty = Toast.makeText(Home.this,job.getString("status").toString(), Toast.LENGTH_LONG);
+                        toasty.show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public void checkDatabase(JSONObject jsonPostData, final VolleyCallback callback) throws JSONException { //String barCode, String itemName, double itemQuantity){
         //Create Object request with via POST method with JSON Object.
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "http://192.168.1.83/test.php",job,
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "http://192.168.1.83/" + jsonPostData.getString("postFile").toString(),jsonPostData,
                 new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        try {
-                            Log.v("itemName Response", response.getString("itemName").toString());
-                            Log.v("itemQuantity Response", response.getString("itemQuantity").toString());
-                            Log.v("itemQuantityT Response", response.getString("itemQuantityType").toString());
-                            callback.onSuccess(response);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        Log.i("JSON Response", response.toString());
+                        callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.v("Error", error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("Error", error.getMessage());
             }
         });
 
