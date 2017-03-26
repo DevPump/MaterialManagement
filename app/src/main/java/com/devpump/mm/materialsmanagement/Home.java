@@ -132,6 +132,7 @@ public class Home extends AppCompatActivity {
             job.put("actionType","insert");
             job.put("barCode",tv_scanContent.getText());
             job.put("itemName",et_itemName.getText());
+            job.put("itemQuantity", et_itemQuantity.getText());
 
             checkDatabase(job, new VolleyCallback() {
 
